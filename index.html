@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Formatter + Validator</title>
+    <!-- Fonts: Inter for UI, Fira Code for Code/Tree -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Ace Editor CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 7V4h16v3M9 20h6M12 4v16"/>
+                </svg>
+                <h1>JSON Formatter <span class="muted">+ Validator</span></h1>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="btn btn-icon" title="Toggle Dark/Light Mode">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-group">
+                <button id="btn-format" class="btn btn-primary" title="Format and beautify JSON">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10H3M21 6H3M21 14H3M21 18H3"/></svg>
+                    Format
+                </button>
+                <button id="btn-minify" class="btn btn-secondary" title="Remove spaces and newlines">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V4M4 20v-4M20 12V4M20 20v-4M8 12h8M4 12h4m8 0h4"/></svg>
+                    Minify
+                </button>
+            </div>
+            
+            <div class="toolbar-divider"></div>
+
+            <div class="toolbar-group">
+                <label class="btn btn-secondary cursor-pointer" title="Upload a .json file">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                    Upload
+                    <input type="file" id="file-upload" accept=".json" hidden>
+                </label>
+                <button id="btn-download" class="btn btn-secondary" title="Download as .json">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Download
+                </button>
+                <button id="btn-copy" class="btn btn-secondary" title="Copy output to clipboard">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Copy Output
+                </button>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <div class="toolbar-group">
+                <label class="toggle-control" title="Format automatically on change">
+                    <input type="checkbox" id="auto-format-toggle" checked>
+                    <span class="control-label">Auto-Format Output</span>
+                </label>
+            </div>
+
+            <div class="toolbar-group ml-auto">
+                <div class="view-toggles">
+                    <button id="btn-view-raw" class="btn btn-tab active">Raw View</button>
+                    <button id="btn-view-tree" class="btn btn-tab">Tree View</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor Area (Split Pane) -->
+        <main class="editor-container">
+            <!-- Left Pane: Input -->
+            <div class="pane left-pane">
+                <div class="pane-header">
+                    <h2>Input <span class="dim">JSON</span></h2>
+                    <span id="input-size" class="size-badge">0 B</span>
+                </div>
+                <div id="input-editor" class="editor-shell"></div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <!-- Right Pane: Output -->
+            <div class="pane right-pane">
+                <div class="pane-header">
+                    <h2>Output</h2>
+                    <span id="output-size" class="size-badge">0 B</span>
+                </div>
+                <div id="output-editor" class="editor-shell"></div>
+                <div id="tree-view" class="tree-shell hidden"></div>
+            </div>
+        </main>
+
+        <!-- Status / Footer -->
+        <footer class="footer">
+            <div id="status-indicator" class="status-badge status-valid">
+                <span class="status-icon"></span>
+                <span class="status-text">Ready</span>
+            </div>
+            <div id="error-message" class="error-text"></div>
+            <button id="btn-jump-error" class="btn btn-small btn-danger hidden">Jump to Error</button>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
